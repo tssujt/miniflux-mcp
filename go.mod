@@ -1,10 +1,10 @@
 module miniflux-mcp
 
-go 1.24.6
+go 1.26.0
 
 require (
 	github.com/mark3labs/mcp-go v0.44.1
-	miniflux.app/v2 v2.2.17
+	miniflux.app/v2 v2.3.3
 )
 
 require (
