@@ -7,21 +7,35 @@ on:
     branches: [ main ]
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version-file: go.mod
 
     - name: Run tests
-      run: go test ./...
+      run: make test
 
     - name: Setup golangci-lint
       uses: golangci/golangci-lint-action@v9
       with:
         version: latest
         args: --verbose
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Set up Go
+      uses: actions/setup-go@v7
+      with:
+        go-version-file: go.mod
+
+    - name: Run end-to-end test
+      run: make e2e
