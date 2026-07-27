@@ -691,18 +691,20 @@ func (s *MinifluxServer) RefreshCategory(ctx context.Context, request mcp.CallTo
 }
 
 func main() {
-	minifluxServer := NewMinifluxServer()
+	transport, err := loadTransportConfig()
+	if err != nil {
+		log.Fatalf("Invalid transport configuration: %v", err)
+	}
 
-	s := server.NewMCPServer(
+	minifluxServer := NewMinifluxServer()
+	mcpServer := server.NewMCPServer(
 		"miniflux-mcp",
 		"0.1.0",
 		server.WithLogging(),
 	)
+	minifluxServer.RegisterAllTools(mcpServer)
 
-	// Register all tools
-	minifluxServer.RegisterAllTools(s)
-
-	if err := server.ServeStdio(s); err != nil {
+	if err := serveMCP(mcpServer, transport); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
