@@ -22,4 +22,6 @@ WORKDIR /root/
 
 COPY --from=builder /app/miniflux-mcp .
 
+EXPOSE 8080
+
 CMD ["./miniflux-mcp"]

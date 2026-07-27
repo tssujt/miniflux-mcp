@@ -9,7 +9,7 @@ A Model Context Protocol (MCP) server for interacting with Miniflux RSS reader. 
 - **Category Management**: List and organize feed categories
 - **Flexible Authentication**: Support for both API key and username/password authentication
 
-## Setup Instructions
+## Setup
 
 ### Getting a Miniflux API Key
 
@@ -18,14 +18,7 @@ A Model Context Protocol (MCP) server for interacting with Miniflux RSS reader. 
 3. Create a new API key
 4. Copy the generated key to your configuration
 
-### Using Docker
-
-```bash
-docker build -t miniflux-mcp .
-docker run --env-file .env miniflux-mcp
-```
-
-### Environment Variables
+### Miniflux Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
@@ -36,29 +29,32 @@ docker run --env-file .env miniflux-mcp
 
 *Either use `MINIFLUX_API_KEY` OR both `MINIFLUX_USERNAME` and `MINIFLUX_PASSWORD`
 
-### Getting a Miniflux API Key
+## Local stdio Server
 
-1. Log into your Miniflux instance
-2. Go to Settings → API Keys
-3. Create a new API key
-4. Copy the generated key to your configuration
+`stdio` is the default transport and is intended for an MCP client that starts the server locally.
 
-### Docker Run
+### Using Docker
 
 ```bash
-# Setup .env file
-# Run
+docker build -t miniflux-mcp .
+docker run -i --rm --env-file .env miniflux-mcp
+```
+
+Or use the published image:
+
+```bash
 docker run -i --rm --env-file .env jwonder/miniflux-mcp:latest
 ```
 
-### Integration with Claude Desktop
+### Claude Code (`.mcp.json`)
 
-To use this MCP server with Claude Desktop, add the following to your Claude Desktop configuration:
+Add the following `.mcp.json` file to your project root:
 
-```json5
+```json
 {
   "mcpServers": {
     "miniflux": {
+      "type": "stdio",
       "command": "docker",
       "args": [
         "run",
@@ -71,16 +67,63 @@ To use this MCP server with Claude Desktop, add the following to your Claude Des
         "jwonder/miniflux-mcp:latest"
       ],
       "env": {
-        "MINIFLUX_URL": "https://your-miniflux-instance.com",
-        "MINIFLUX_API_KEY": "your_api_key_here"
-        // Or use username/password instead of API key
-        // "MINIFLUX_USERNAME": "your_username_here",
-        // "MINIFLUX_PASSWORD": "your_password_here"
+        "MINIFLUX_URL": "${MINIFLUX_URL}",
+        "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}"
       }
     }
   }
 }
 ```
+
+## Remote Streamable HTTP Server
+
+The remote server exposes a Streamable HTTP MCP endpoint protected by a static Bearer token.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MCP_TRANSPORT` | Set to `streamable-http` | `stdio` |
+| `MCP_HTTP_ADDR` | HTTP listen address | `:8080` |
+| `MCP_HTTP_PATH` | MCP endpoint path | `/mcp` |
+| `MCP_AUTH_TOKEN` | Bearer token protecting the MCP endpoint; required in HTTP mode | None |
+
+Set a strong token and start the container with the Streamable HTTP transport:
+
+```bash
+export MCP_AUTH_TOKEN='replace-with-a-strong-secret'
+
+docker run --rm \
+  -p 8080:8080 \
+  --env-file .env \
+  -e MCP_TRANSPORT=streamable-http \
+  -e MCP_AUTH_TOKEN \
+  jwonder/miniflux-mcp:latest
+```
+
+Configure an MCP client to connect to `http://your-server:8080/mcp` and send:
+
+```http
+Authorization: Bearer replace-with-a-strong-secret
+```
+
+### Claude Code (`.mcp.json`)
+
+Add the remote server to your project-level `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "miniflux": {
+      "type": "http",
+      "url": "https://mcp.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${MCP_AUTH_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+The unauthenticated health endpoint is available at `/healthz`. For deployment outside a trusted private network, put the server behind an HTTPS reverse proxy so the Bearer token is encrypted in transit. One server process uses one configured Miniflux identity, so every connected MCP client has that identity's permissions.
 
 ## Available Tools
 
