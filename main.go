@@ -695,11 +695,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid transport configuration: %v", err)
 	}
+	log.Printf("Starting miniflux-mcp version=%s revision=%s build_date=%s", Version, Revision, BuildDate)
 
 	minifluxServer := NewMinifluxServer()
 	mcpServer := server.NewMCPServer(
 		"miniflux-mcp",
-		"0.1.0",
+		Version,
 		server.WithLogging(),
 	)
 	minifluxServer.RegisterAllTools(mcpServer)

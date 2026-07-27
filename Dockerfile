@@ -1,5 +1,9 @@
 FROM golang:1.26-alpine AS builder
 
+ARG VERSION=dev
+ARG REVISION=unknown
+ARG BUILD_DATE=unknown
+
 WORKDIR /app
 
 # Copy go mod files
@@ -12,7 +16,9 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o miniflux-mcp .
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags "-X main.Version=${VERSION} -X main.Revision=${REVISION} -X main.BuildDate=${BUILD_DATE}" \
+    -o miniflux-mcp .
 
 FROM alpine:latest
 
