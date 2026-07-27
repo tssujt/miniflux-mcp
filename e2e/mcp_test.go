@@ -41,6 +41,13 @@ type toolCallResult struct {
 	IsError bool `json:"isError"`
 }
 
+type initializeResult struct {
+	ProtocolVersion string `json:"protocolVersion"`
+	ServerInfo      struct {
+		Version string `json:"version"`
+	} `json:"serverInfo"`
+}
+
 type httpRPCClient struct {
 	endpoint string
 	token    string
@@ -239,9 +246,7 @@ func TestMCPServerWithMiniflux(t *testing.T) {
 	})
 
 	client := &rpcClient{input: stdin, output: bufio.NewReader(stdout)}
-	var initialized struct {
-		ProtocolVersion string `json:"protocolVersion"`
-	}
+	var initialized initializeResult
 	if err := client.request("initialize", map[string]any{
 		"protocolVersion": "2024-11-05",
 		"capabilities":    map[string]any{},
@@ -254,6 +259,9 @@ func TestMCPServerWithMiniflux(t *testing.T) {
 	}
 	if initialized.ProtocolVersion == "" {
 		t.Fatal("initialize response did not include a protocol version")
+	}
+	if initialized.ServerInfo.Version != os.Getenv("EXPECTED_SERVER_VERSION") {
+		t.Fatalf("initialize server version = %q, want %q", initialized.ServerInfo.Version, os.Getenv("EXPECTED_SERVER_VERSION"))
 	}
 	if err := client.notify("notifications/initialized"); err != nil {
 		t.Fatalf("send initialized notification: %v", err)
@@ -428,9 +436,7 @@ func TestRemoteMCPServerWithMiniflux(t *testing.T) {
 		token:    token,
 		client:   httpClient,
 	}
-	var initialized struct {
-		ProtocolVersion string `json:"protocolVersion"`
-	}
+	var initialized initializeResult
 	if err := client.request("initialize", map[string]any{
 		"protocolVersion": "2024-11-05",
 		"capabilities":    map[string]any{},
@@ -443,6 +449,9 @@ func TestRemoteMCPServerWithMiniflux(t *testing.T) {
 	}
 	if initialized.ProtocolVersion == "" {
 		t.Fatal("initialize response did not include a protocol version")
+	}
+	if initialized.ServerInfo.Version != os.Getenv("EXPECTED_SERVER_VERSION") {
+		t.Fatalf("initialize server version = %q, want %q", initialized.ServerInfo.Version, os.Getenv("EXPECTED_SERVER_VERSION"))
 	}
 	if err := client.notify("notifications/initialized"); err != nil {
 		t.Fatalf("send initialized notification: %v", err)
