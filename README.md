@@ -103,7 +103,7 @@ The Miniflux MCP Server provides **40+ tools** covering all Miniflux API functio
 - `get_entries` - Get entries with optional filtering
 - `get_entry` - Get a specific entry by ID
 - `update_entry_status` - Update entry status (read/unread/removed)
-- `toggle_bookmark` - Toggle bookmark status of an entry
+- `toggle_starred` - Toggle starred status of an entry
 - `save_entry` - Save an entry
 - `fetch_original_content` - Fetch original content of an entry
 - `mark_all_as_read` - Mark all entries as read for a user

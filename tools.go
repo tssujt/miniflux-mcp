@@ -446,8 +446,8 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		},
 		{
 			Tool: mcp.Tool{
-				Name:        "toggle_bookmark",
-				Description: "Toggle bookmark status of an entry",
+				Name:        "toggle_starred",
+				Description: "Toggle starred status of an entry",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]interface{}{
@@ -459,7 +459,7 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 					Required: []string{"entry_id"},
 				},
 			},
-			Handler: s.ToggleBookmark,
+			Handler: s.ToggleStarred,
 		},
 		{
 			Tool: mcp.Tool{

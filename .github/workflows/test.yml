@@ -17,6 +17,9 @@ jobs:
       with:
         go-version: "1.24"
 
+    - name: Run tests
+      run: go test ./...
+
     - name: Setup golangci-lint
       uses: golangci/golangci-lint-action@v9
       with:
