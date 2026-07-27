@@ -1,0 +1,32 @@
+services:
+  miniflux:
+    image: miniflux/miniflux:2.3.3
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      BASE_URL: http://localhost:8080
+      DATABASE_URL: postgres://miniflux:secret@db/miniflux?sslmode=disable
+      RUN_MIGRATIONS: "1"
+      CREATE_ADMIN: "1"
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: test123
+    healthcheck:
+      test: ["CMD", "/usr/bin/miniflux", "-healthcheck", "http://localhost:8080/healthcheck"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: miniflux
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: miniflux
+    healthcheck:
+      test: ["CMD-SHELL", "test \"$$(cat /proc/1/comm)\" = postgres && pg_isready -U miniflux -d miniflux"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
