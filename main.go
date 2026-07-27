@@ -79,23 +79,80 @@ func (s *MinifluxServer) GetEntries(ctx context.Context, request mcp.CallToolReq
 		if ok {
 			filter = &client.Filter{}
 
-			if statusStr, ok := argsMap["status"].(string); ok {
+			if statusValues, ok := argsMap["statuses"].([]interface{}); ok {
+				for _, statusValue := range statusValues {
+					if status, ok := statusValue.(string); ok {
+						filter.Statuses = append(filter.Statuses, status)
+					}
+				}
+			}
+
+			if statusStr, ok := argsMap["status"].(string); ok && len(filter.Statuses) == 0 {
 				filter.Status = statusStr
 			}
 
 			if feedIDFloat, ok := argsMap["feed_id"].(float64); ok {
-				feedID := int64(feedIDFloat)
-				filter.FeedID = feedID
+				filter.FeedID = int64(feedIDFloat)
+			}
+
+			if categoryIDFloat, ok := argsMap["category_id"].(float64); ok {
+				filter.CategoryID = int64(categoryIDFloat)
 			}
 
 			if limitFloat, ok := argsMap["limit"].(float64); ok {
-				limit := int(limitFloat)
-				filter.Limit = limit
+				filter.Limit = int(limitFloat)
 			}
 
 			if offsetFloat, ok := argsMap["offset"].(float64); ok {
-				offset := int(offsetFloat)
-				filter.Offset = offset
+				filter.Offset = int(offsetFloat)
+			}
+
+			if publishedAfterFloat, ok := argsMap["published_after"].(float64); ok {
+				filter.PublishedAfter = int64(publishedAfterFloat)
+			}
+
+			if publishedBeforeFloat, ok := argsMap["published_before"].(float64); ok {
+				filter.PublishedBefore = int64(publishedBeforeFloat)
+			}
+
+			if changedAfterFloat, ok := argsMap["changed_after"].(float64); ok {
+				filter.ChangedAfter = int64(changedAfterFloat)
+			}
+
+			if changedBeforeFloat, ok := argsMap["changed_before"].(float64); ok {
+				filter.ChangedBefore = int64(changedBeforeFloat)
+			}
+
+			if beforeEntryIDFloat, ok := argsMap["before_entry_id"].(float64); ok {
+				filter.BeforeEntryID = int64(beforeEntryIDFloat)
+			}
+
+			if afterEntryIDFloat, ok := argsMap["after_entry_id"].(float64); ok {
+				filter.AfterEntryID = int64(afterEntryIDFloat)
+			}
+
+			if search, ok := argsMap["search"].(string); ok {
+				filter.Search = search
+			}
+
+			if starred, ok := argsMap["starred"].(bool); ok {
+				if starred {
+					filter.Starred = client.FilterOnlyStarred
+				} else {
+					filter.Starred = client.FilterNotStarred
+				}
+			}
+
+			if order, ok := argsMap["order"].(string); ok {
+				filter.Order = order
+			}
+
+			if direction, ok := argsMap["direction"].(string); ok {
+				filter.Direction = direction
+			}
+
+			if globallyVisible, ok := argsMap["globally_visible"].(bool); ok {
+				filter.GloballyVisible = globallyVisible
 			}
 		}
 	}
