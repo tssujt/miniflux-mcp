@@ -328,10 +328,23 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 						"status": map[string]interface{}{
 							"type":        "string",
 							"description": "Filter by entry status (read, unread, removed)",
+							"enum":        []string{"read", "unread", "removed"},
+						},
+						"statuses": map[string]interface{}{
+							"type":        "array",
+							"description": "Filter by multiple entry statuses; takes precedence over status",
+							"items": map[string]interface{}{
+								"type": "string",
+								"enum": []string{"read", "unread", "removed"},
+							},
 						},
 						"feed_id": map[string]interface{}{
 							"type":        "number",
 							"description": "Filter by specific feed ID",
+						},
+						"category_id": map[string]interface{}{
+							"type":        "number",
+							"description": "Filter by specific category ID",
 						},
 						"limit": map[string]interface{}{
 							"type":        "number",
@@ -340,6 +353,52 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 						"offset": map[string]interface{}{
 							"type":        "number",
 							"description": "Offset for pagination",
+						},
+						"published_after": map[string]interface{}{
+							"type":        "number",
+							"description": "Return entries published after this Unix timestamp",
+						},
+						"published_before": map[string]interface{}{
+							"type":        "number",
+							"description": "Return entries published before this Unix timestamp",
+						},
+						"changed_after": map[string]interface{}{
+							"type":        "number",
+							"description": "Return entries changed after this Unix timestamp",
+						},
+						"changed_before": map[string]interface{}{
+							"type":        "number",
+							"description": "Return entries changed before this Unix timestamp",
+						},
+						"before_entry_id": map[string]interface{}{
+							"type":        "number",
+							"description": "Return entries with an ID lower than this value",
+						},
+						"after_entry_id": map[string]interface{}{
+							"type":        "number",
+							"description": "Return entries with an ID greater than this value",
+						},
+						"search": map[string]interface{}{
+							"type":        "string",
+							"description": "Search entry title and content",
+						},
+						"starred": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Filter by starred state",
+						},
+						"order": map[string]interface{}{
+							"type":        "string",
+							"description": "Field used to sort entries",
+							"enum":        []string{"id", "status", "changed_at", "published_at", "created_at", "category_title", "category_id", "title", "author"},
+						},
+						"direction": map[string]interface{}{
+							"type":        "string",
+							"description": "Sort direction",
+							"enum":        []string{"asc", "desc"},
+						},
+						"globally_visible": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Restrict results to globally visible entries when true",
 						},
 					},
 				},
