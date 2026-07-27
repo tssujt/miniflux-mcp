@@ -86,10 +86,11 @@ To use this MCP server with Claude Desktop, add the following to your Claude Des
 
 The Miniflux MCP Server provides **40+ tools** covering all Miniflux API functionality, which can be found in the [Miniflux API Reference](https://miniflux.app/docs/api.html#go-client).
 
-### Feed Management (10 tools)
+### Feed Management (11 tools)
 - `get_feeds` - Get all RSS/Atom feeds
 - `get_feed` - Get a specific feed by ID
 - `create_feed` - Add a new RSS/Atom feed
+- `update_feed` - Update an existing feed
 - `delete_feed` - Delete a specific feed
 - `refresh_feed` - Manually refresh a specific feed
 - `refresh_all_feeds` - Refresh all feeds

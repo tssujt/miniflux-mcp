@@ -80,6 +80,115 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		},
 		{
 			Tool: mcp.Tool{
+				Name:        "update_feed",
+				Description: "Update an existing feed",
+				InputSchema: mcp.ToolInputSchema{
+					Type: "object",
+					Properties: map[string]interface{}{
+						"feed_id": map[string]interface{}{
+							"type":        "number",
+							"description": "The ID of the feed to update",
+						},
+						"feed_url": map[string]interface{}{
+							"type":        "string",
+							"description": "New RSS/Atom feed URL",
+						},
+						"site_url": map[string]interface{}{
+							"type":        "string",
+							"description": "New website URL",
+						},
+						"title": map[string]interface{}{
+							"type":        "string",
+							"description": "New feed title",
+						},
+						"category_id": map[string]interface{}{
+							"type":        "number",
+							"description": "Category ID to move the feed to",
+						},
+						"scraper_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "CSS selectors for scraping article content",
+						},
+						"rewrite_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "Content rewrite rules",
+						},
+						"urlrewrite_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "URL rewrite rules",
+						},
+						"blocklist_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "Entry blocklist rules",
+						},
+						"keeplist_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "Entry keeplist rules",
+						},
+						"block_filter_entry_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "Entry block filter rules",
+						},
+						"keep_filter_entry_rules": map[string]interface{}{
+							"type":        "string",
+							"description": "Entry keep filter rules",
+						},
+						"crawler": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Enable or disable full-content scraping",
+						},
+						"user_agent": map[string]interface{}{
+							"type":        "string",
+							"description": "Custom user agent for feed fetching",
+						},
+						"cookie": map[string]interface{}{
+							"type":        "string",
+							"description": "Cookie header for feed fetching",
+						},
+						"username": map[string]interface{}{
+							"type":        "string",
+							"description": "Username for HTTP basic authentication",
+						},
+						"password": map[string]interface{}{
+							"type":        "string",
+							"description": "Password for HTTP basic authentication",
+						},
+						"disabled": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Enable or disable feed fetching",
+						},
+						"ignore_http_cache": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Ignore HTTP cache headers",
+						},
+						"allow_self_signed_certificates": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Allow self-signed TLS certificates",
+						},
+						"fetch_via_proxy": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Fetch the feed through the configured proxy",
+						},
+						"hide_globally": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Hide feed entries from the global list",
+						},
+						"disable_http2": map[string]interface{}{
+							"type":        "boolean",
+							"description": "Disable HTTP/2 when fetching the feed",
+						},
+						"proxy_url": map[string]interface{}{
+							"type":        "string",
+							"description": "Proxy URL used to fetch the feed",
+						},
+					},
+					Required: []string{"feed_id"},
+				},
+			},
+			Handler: s.UpdateFeed,
+		},
+		{
+			Tool: mcp.Tool{
 				Name:        "delete_feed",
 				Description: "Delete a specific feed",
 				InputSchema: mcp.ToolInputSchema{

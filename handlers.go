@@ -40,6 +40,105 @@ func (s *MinifluxServer) GetFeed(ctx context.Context, request mcp.CallToolReques
 	return mcp.NewToolResultText(string(feedJSON)), nil
 }
 
+func (s *MinifluxServer) UpdateFeed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := request.Params.Arguments
+	if args == nil {
+		return mcp.NewToolResultError("feed_id and at least one field to update are required"), nil
+	}
+
+	argsMap, ok := args.(map[string]interface{})
+	if !ok {
+		return mcp.NewToolResultError("Invalid arguments format"), nil
+	}
+
+	feedIDFloat, ok := argsMap["feed_id"].(float64)
+	if !ok {
+		return mcp.NewToolResultError("feed_id must be a number"), nil
+	}
+
+	changes := &client.FeedModificationRequest{}
+	hasChanges := false
+
+	stringFields := map[string]**string{
+		"feed_url":                 &changes.FeedURL,
+		"site_url":                 &changes.SiteURL,
+		"title":                    &changes.Title,
+		"scraper_rules":            &changes.ScraperRules,
+		"rewrite_rules":            &changes.RewriteRules,
+		"urlrewrite_rules":         &changes.UrlRewriteRules,
+		"blocklist_rules":          &changes.BlocklistRules,
+		"keeplist_rules":           &changes.KeeplistRules,
+		"block_filter_entry_rules": &changes.BlockFilterEntryRules,
+		"keep_filter_entry_rules":  &changes.KeepFilterEntryRules,
+		"user_agent":               &changes.UserAgent,
+		"cookie":                   &changes.Cookie,
+		"username":                 &changes.Username,
+		"password":                 &changes.Password,
+		"proxy_url":                &changes.ProxyURL,
+	}
+	for name, target := range stringFields {
+		value, exists := argsMap[name]
+		if !exists {
+			continue
+		}
+		stringValue, ok := value.(string)
+		if !ok {
+			return mcp.NewToolResultError(fmt.Sprintf("%s must be a string", name)), nil
+		}
+		*target = &stringValue
+		hasChanges = true
+	}
+
+	boolFields := map[string]**bool{
+		"crawler":                        &changes.Crawler,
+		"disabled":                       &changes.Disabled,
+		"ignore_http_cache":              &changes.IgnoreHTTPCache,
+		"allow_self_signed_certificates": &changes.AllowSelfSignedCertificates,
+		"fetch_via_proxy":                &changes.FetchViaProxy,
+		"hide_globally":                  &changes.HideGlobally,
+		"disable_http2":                  &changes.DisableHTTP2,
+	}
+	for name, target := range boolFields {
+		value, exists := argsMap[name]
+		if !exists {
+			continue
+		}
+		boolValue, ok := value.(bool)
+		if !ok {
+			return mcp.NewToolResultError(fmt.Sprintf("%s must be a boolean", name)), nil
+		}
+		*target = &boolValue
+		hasChanges = true
+	}
+
+	if value, exists := argsMap["category_id"]; exists {
+		categoryIDFloat, ok := value.(float64)
+		if !ok {
+			return mcp.NewToolResultError("category_id must be a number"), nil
+		}
+		categoryID := int64(categoryIDFloat)
+		changes.CategoryID = &categoryID
+		hasChanges = true
+	}
+
+	if !hasChanges {
+		return mcp.NewToolResultError("at least one field to update is required"), nil
+	}
+
+	feedID := int64(feedIDFloat)
+	updatedFeed, err := s.client.UpdateFeed(feedID, changes)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to update feed: %v", err)), nil
+	}
+
+	feedJSON, err := json.MarshalIndent(updatedFeed, "", "  ")
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to marshal updated feed: %v", err)), nil
+	}
+
+	return mcp.NewToolResultText(string(feedJSON)), nil
+}
+
 func (s *MinifluxServer) DeleteFeed(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args := request.Params.Arguments
 	if args == nil {
