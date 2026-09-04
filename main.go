@@ -16,6 +16,19 @@ type MinifluxServer struct {
 	client *client.Client
 }
 
+type feedSummary struct {
+	ID       int64                `json:"id"`
+	Title    string               `json:"title"`
+	FeedURL  string               `json:"feed_url"`
+	Disabled bool                 `json:"disabled"`
+	Category *feedCategorySummary `json:"category,omitempty"`
+}
+
+type feedCategorySummary struct {
+	ID    int64  `json:"id"`
+	Title string `json:"title"`
+}
+
 func NewMinifluxServer() *MinifluxServer {
 	// Get configuration from environment variables
 	baseURL := os.Getenv("MINIFLUX_URL")
@@ -56,12 +69,33 @@ func NewMinifluxServer() *MinifluxServer {
 }
 
 func (s *MinifluxServer) GetFeeds(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	feeds, err := s.client.Feeds()
+	feeds, err := s.client.FeedsContext(ctx)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to fetch feeds: %v", err)), nil
 	}
 
-	feedsJSON, err := json.MarshalIndent(feeds, "", "  ")
+	summaries := make([]feedSummary, 0, len(feeds))
+	for _, feed := range feeds {
+		if feed == nil {
+			continue
+		}
+
+		summary := feedSummary{
+			ID:       feed.ID,
+			Title:    feed.Title,
+			FeedURL:  feed.FeedURL,
+			Disabled: feed.Disabled,
+		}
+		if feed.Category != nil {
+			summary.Category = &feedCategorySummary{
+				ID:    feed.Category.ID,
+				Title: feed.Category.Title,
+			}
+		}
+		summaries = append(summaries, summary)
+	}
+
+	feedsJSON, err := json.MarshalIndent(summaries, "", "  ")
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to marshal feeds: %v", err)), nil
 	}
