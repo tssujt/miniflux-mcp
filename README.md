@@ -130,7 +130,7 @@ The unauthenticated health endpoint is available at `/healthz`. For deployment o
 The Miniflux MCP Server provides **40+ tools** covering all Miniflux API functionality, which can be found in the [Miniflux API Reference](https://miniflux.app/docs/api.html#go-client).
 
 ### Feed Management (11 tools)
-- `get_feeds` - Get all RSS/Atom feeds
+- `get_feeds` - List RSS/Atom feeds with their IDs, titles, feed URLs, disabled status, and categories
 - `get_feed` - Get a specific feed by ID
 - `create_feed` - Add a new RSS/Atom feed
 - `update_feed` - Update an existing feed

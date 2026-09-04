@@ -16,7 +16,7 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		{
 			Tool: mcp.Tool{
 				Name:        "get_feeds",
-				Description: "Get all RSS/Atom feeds from Miniflux",
+				Description: "List RSS/Atom feeds with their IDs, titles, feed URLs, disabled status, and categories. Use get_feed to retrieve full details for a specific feed.",
 				InputSchema: mcp.ToolInputSchema{
 					Type:       "object",
 					Properties: map[string]interface{}{},
