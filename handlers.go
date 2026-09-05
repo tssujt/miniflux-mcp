@@ -207,7 +207,7 @@ func (s *MinifluxServer) GetFeedEntries(ctx context.Context, request mcp.CallToo
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to fetch feed entries: %v", err)), nil
 	}
 
-	entriesJSON, err := json.MarshalIndent(entries, "", "  ")
+	entriesJSON, err := marshalEntryList(entries)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to marshal entries: %v", err)), nil
 	}
