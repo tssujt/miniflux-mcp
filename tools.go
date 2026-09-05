@@ -235,7 +235,7 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		{
 			Tool: mcp.Tool{
 				Name:        "get_feed_entries",
-				Description: "Get entries from a specific feed",
+				Description: "Get entries from a specific feed, including article content and compact feed metadata. Use get_feed for full feed details.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]interface{}{
@@ -321,7 +321,7 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		{
 			Tool: mcp.Tool{
 				Name:        "get_entries",
-				Description: "Get entries (articles) from Miniflux with optional filtering",
+				Description: "Get entries (articles) from Miniflux with optional filtering, including article content and compact feed metadata. Use get_feed for full feed details.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]interface{}{
@@ -600,7 +600,7 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 		{
 			Tool: mcp.Tool{
 				Name:        "get_category_entries",
-				Description: "Get all entries in a specific category",
+				Description: "Get all entries in a specific category, including article content and compact feed metadata. Use get_feed for full feed details.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]interface{}{

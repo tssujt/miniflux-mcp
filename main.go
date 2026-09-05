@@ -80,19 +80,7 @@ func (s *MinifluxServer) GetFeeds(ctx context.Context, request mcp.CallToolReque
 			continue
 		}
 
-		summary := feedSummary{
-			ID:       feed.ID,
-			Title:    feed.Title,
-			FeedURL:  feed.FeedURL,
-			Disabled: feed.Disabled,
-		}
-		if feed.Category != nil {
-			summary.Category = &feedCategorySummary{
-				ID:    feed.Category.ID,
-				Title: feed.Category.Title,
-			}
-		}
-		summaries = append(summaries, summary)
+		summaries = append(summaries, *summarizeFeed(feed))
 	}
 
 	feedsJSON, err := json.MarshalIndent(summaries, "", "  ")
@@ -196,7 +184,7 @@ func (s *MinifluxServer) GetEntries(ctx context.Context, request mcp.CallToolReq
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to fetch entries: %v", err)), nil
 	}
 
-	entriesJSON, err := json.MarshalIndent(entries, "", "  ")
+	entriesJSON, err := marshalEntryList(entries)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to marshal entries: %v", err)), nil
 	}
@@ -666,7 +654,7 @@ func (s *MinifluxServer) GetCategoryEntries(ctx context.Context, request mcp.Cal
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to fetch category entries: %v", err)), nil
 	}
 
-	entriesJSON, err := json.MarshalIndent(entries, "", "  ")
+	entriesJSON, err := marshalEntryList(entries)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Failed to marshal entries: %v", err)), nil
 	}
