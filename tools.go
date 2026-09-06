@@ -10,6 +10,96 @@ type ToolDefinition struct {
 	Handler server.ToolHandlerFunc
 }
 
+func entryFilterProperties(extra map[string]interface{}) map[string]interface{} {
+	properties := map[string]interface{}{
+		"status": map[string]interface{}{
+			"type":        "string",
+			"description": "Filter by entry status (read, unread, removed)",
+			"enum":        []string{"read", "unread", "removed"},
+		},
+		"statuses": map[string]interface{}{
+			"type":        "array",
+			"description": "Filter by multiple entry statuses; takes precedence over status",
+			"items": map[string]interface{}{
+				"type": "string",
+				"enum": []string{"read", "unread", "removed"},
+			},
+		},
+		"category_id": map[string]interface{}{
+			"type":        "number",
+			"description": "Filter by specific category ID",
+		},
+		"limit": map[string]interface{}{
+			"type":        "number",
+			"description": "Limit the number of entries returned (default: 100)",
+		},
+		"offset": map[string]interface{}{
+			"type":        "number",
+			"description": "Offset for pagination",
+		},
+		"after": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries published after this Unix timestamp (alias of published_after)",
+		},
+		"before": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries published before this Unix timestamp (alias of published_before)",
+		},
+		"published_after": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries published after this Unix timestamp",
+		},
+		"published_before": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries published before this Unix timestamp",
+		},
+		"changed_after": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries changed after this Unix timestamp",
+		},
+		"changed_before": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries changed before this Unix timestamp",
+		},
+		"after_entry_id": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries with an ID greater than this value",
+		},
+		"before_entry_id": map[string]interface{}{
+			"type":        "number",
+			"description": "Return entries with an ID lower than this value",
+		},
+		"search": map[string]interface{}{
+			"type":        "string",
+			"description": "Search entry title and content",
+		},
+		"starred": map[string]interface{}{
+			"type":        "boolean",
+			"description": "Filter by starred state",
+		},
+		"order": map[string]interface{}{
+			"type":        "string",
+			"description": "Field used to sort entries",
+			"enum":        []string{"id", "status", "changed_at", "published_at", "created_at", "category_title", "category_id", "title", "author"},
+		},
+		"direction": map[string]interface{}{
+			"type":        "string",
+			"description": "Sort direction",
+			"enum":        []string{"asc", "desc"},
+		},
+		"globally_visible": map[string]interface{}{
+			"type":        "boolean",
+			"description": "Restrict results to globally visible entries when true",
+		},
+	}
+
+	for name, schema := range extra {
+		properties[name] = schema
+	}
+
+	return properties
+}
+
 func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 	tools := []ToolDefinition{
 		// Feed Operations
@@ -238,24 +328,12 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 				Description: "Get entries from a specific feed, including article content and compact feed metadata. Use get_feed for full feed details.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
-					Properties: map[string]interface{}{
+					Properties: entryFilterProperties(map[string]interface{}{
 						"feed_id": map[string]interface{}{
 							"type":        "number",
 							"description": "The ID of the feed",
 						},
-						"status": map[string]interface{}{
-							"type":        "string",
-							"description": "Filter by entry status (read, unread, removed)",
-						},
-						"limit": map[string]interface{}{
-							"type":        "number",
-							"description": "Limit the number of entries returned",
-						},
-						"offset": map[string]interface{}{
-							"type":        "number",
-							"description": "Offset for pagination",
-						},
-					},
+					}),
 					Required: []string{"feed_id"},
 				},
 			},
@@ -324,83 +402,12 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 				Description: "Get entries (articles) from Miniflux with optional filtering, including article content and compact feed metadata. Use get_feed for full feed details.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
-					Properties: map[string]interface{}{
-						"status": map[string]interface{}{
-							"type":        "string",
-							"description": "Filter by entry status (read, unread, removed)",
-							"enum":        []string{"read", "unread", "removed"},
-						},
-						"statuses": map[string]interface{}{
-							"type":        "array",
-							"description": "Filter by multiple entry statuses; takes precedence over status",
-							"items": map[string]interface{}{
-								"type": "string",
-								"enum": []string{"read", "unread", "removed"},
-							},
-						},
+					Properties: entryFilterProperties(map[string]interface{}{
 						"feed_id": map[string]interface{}{
 							"type":        "number",
 							"description": "Filter by specific feed ID",
 						},
-						"category_id": map[string]interface{}{
-							"type":        "number",
-							"description": "Filter by specific category ID",
-						},
-						"limit": map[string]interface{}{
-							"type":        "number",
-							"description": "Limit the number of entries returned",
-						},
-						"offset": map[string]interface{}{
-							"type":        "number",
-							"description": "Offset for pagination",
-						},
-						"published_after": map[string]interface{}{
-							"type":        "number",
-							"description": "Return entries published after this Unix timestamp",
-						},
-						"published_before": map[string]interface{}{
-							"type":        "number",
-							"description": "Return entries published before this Unix timestamp",
-						},
-						"changed_after": map[string]interface{}{
-							"type":        "number",
-							"description": "Return entries changed after this Unix timestamp",
-						},
-						"changed_before": map[string]interface{}{
-							"type":        "number",
-							"description": "Return entries changed before this Unix timestamp",
-						},
-						"before_entry_id": map[string]interface{}{
-							"type":        "number",
-							"description": "Return entries with an ID lower than this value",
-						},
-						"after_entry_id": map[string]interface{}{
-							"type":        "number",
-							"description": "Return entries with an ID greater than this value",
-						},
-						"search": map[string]interface{}{
-							"type":        "string",
-							"description": "Search entry title and content",
-						},
-						"starred": map[string]interface{}{
-							"type":        "boolean",
-							"description": "Filter by starred state",
-						},
-						"order": map[string]interface{}{
-							"type":        "string",
-							"description": "Field used to sort entries",
-							"enum":        []string{"id", "status", "changed_at", "published_at", "created_at", "category_title", "category_id", "title", "author"},
-						},
-						"direction": map[string]interface{}{
-							"type":        "string",
-							"description": "Sort direction",
-							"enum":        []string{"asc", "desc"},
-						},
-						"globally_visible": map[string]interface{}{
-							"type":        "boolean",
-							"description": "Restrict results to globally visible entries when true",
-						},
-					},
+					}),
 				},
 			},
 			Handler: s.GetEntries,
@@ -603,20 +610,12 @@ func (s *MinifluxServer) RegisterAllTools(mcpServer *server.MCPServer) {
 				Description: "Get all entries in a specific category, including article content and compact feed metadata. Use get_feed for full feed details.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
-					Properties: map[string]interface{}{
+					Properties: entryFilterProperties(map[string]interface{}{
 						"category_id": map[string]interface{}{
 							"type":        "number",
 							"description": "The ID of the category",
 						},
-						"status": map[string]interface{}{
-							"type":        "string",
-							"description": "Filter by entry status (read, unread, removed)",
-						},
-						"limit": map[string]interface{}{
-							"type":        "number",
-							"description": "Limit the number of entries returned",
-						},
-					},
+					}),
 					Required: []string{"category_id"},
 				},
 			},
