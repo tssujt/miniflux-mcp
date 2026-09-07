@@ -183,24 +183,7 @@ func (s *MinifluxServer) GetFeedEntries(ctx context.Context, request mcp.CallToo
 	feedID := int64(feedIDFloat)
 
 	// Parse optional filter parameters
-	var filter *client.Filter
-	if statusStr, ok := argsMap["status"].(string); ok {
-		filter = &client.Filter{Status: statusStr}
-	}
-	if limitFloat, ok := argsMap["limit"].(float64); ok {
-		if filter == nil {
-			filter = &client.Filter{}
-		}
-		limit := int(limitFloat)
-		filter.Limit = limit
-	}
-	if offsetFloat, ok := argsMap["offset"].(float64); ok {
-		if filter == nil {
-			filter = &client.Filter{}
-		}
-		offset := int(offsetFloat)
-		filter.Offset = offset
-	}
+	filter := parseEntryFilter(argsMap)
 
 	entries, err := s.client.FeedEntries(feedID, filter)
 	if err != nil {
