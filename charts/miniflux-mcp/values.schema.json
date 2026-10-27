@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "miniflux-mcp chart values",
+  "description": "Configuration for the miniflux-mcp Helm chart.",
+  "type": "object",
+  "properties": {
+    "replicaCount": {
+      "description": "Number of application replicas.",
+      "type": "integer",
+      "default": 1
+    },
+    "image": {
+      "description": "Container image configuration.",
+      "type": "object",
+      "properties": {
+        "repository": {
+          "description": "Container image repository.",
+          "type": "string",
+          "default": "jwonder/miniflux-mcp"
+        },
+        "tag": {
+          "description": "Container image tag.",
+          "type": "string",
+          "default": "latest"
+        },
+        "pullPolicy": {
+          "description": "Container image pull policy.",
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "default": "IfNotPresent"
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "description": "References to Secrets used to pull the container image.",
+      "type": "array",
+      "items": { "type": "object" },
+      "default": []
+    },
+    "nameOverride": {
+      "description": "Override the chart name.",
+      "type": "string",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "description": "Override the fully qualified application name.",
+      "type": "string",
+      "default": ""
+    },
+    "service": {
+      "description": "Kubernetes Service configuration.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Kubernetes Service type.",
+          "type": "string",
+          "default": "ClusterIP"
+        },
+        "port": {
+          "description": "Service port.",
+          "type": "integer",
+          "default": 8080
+        }
+      }
+    },
+    "miniflux": {
+      "description": "Miniflux connection and authentication settings.",
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "URL of the Miniflux server.",
+          "type": "string",
+          "default": "http://miniflux:8080"
+        },
+        "apiKey": {
+          "description": "Miniflux API key. Prefer existingSecret for production use.",
+          "type": "string",
+          "default": ""
+        },
+        "username": {
+          "description": "Miniflux username used when no API key is configured.",
+          "type": "string",
+          "default": ""
+        },
+        "password": {
+          "description": "Miniflux password used when no API key is configured.",
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "mcp": {
+      "description": "MCP HTTP server configuration.",
+      "type": "object",
+      "properties": {
+        "port": {
+          "description": "Container port used by the MCP HTTP server.",
+          "type": "integer",
+          "default": 8080
+        },
+        "path": {
+          "description": "HTTP path of the MCP endpoint.",
+          "type": "string",
+          "default": "/mcp"
+        },
+        "authToken": {
+          "description": "Bearer token for the MCP endpoint. Prefer existingSecret for production use.",
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "existingSecret": {
+      "description": "Name of an existing Secret containing MCP and Miniflux credentials.",
+      "type": "string",
+      "default": ""
+    },
+    "secretKeys": {
+      "description": "Key names used in the generated or existing Secret.",
+      "type": "object",
+      "properties": {
+        "mcpAuthToken": {
+          "description": "Secret key containing the MCP bearer token.",
+          "type": "string",
+          "default": "MCP_AUTH_TOKEN"
+        },
+        "minifluxApiKey": {
+          "description": "Secret key containing the Miniflux API key.",
+          "type": "string",
+          "default": "MINIFLUX_API_KEY"
+        },
+        "minifluxUsername": {
+          "description": "Secret key containing the Miniflux username.",
+          "type": "string",
+          "default": "MINIFLUX_USERNAME"
+        },
+        "minifluxPassword": {
+          "description": "Secret key containing the Miniflux password.",
+          "type": "string",
+          "default": "MINIFLUX_PASSWORD"
+        }
+      }
+    },
+    "ingress": {
+      "description": "Kubernetes Ingress configuration.",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "description": "Create an Ingress resource.",
+          "type": "boolean",
+          "default": true
+        },
+        "className": {
+          "description": "Ingress class name.",
+          "type": "string",
+          "default": "nginx"
+        },
+        "annotations": {
+          "description": "Annotations added to the Ingress.",
+          "type": "object",
+          "default": {}
+        },
+        "hosts": {
+          "description": "Ingress hosts and paths.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "description": "Hostname matched by the Ingress rule.",
+                "type": "string"
+              },
+              "paths": {
+                "description": "Paths exposed for the host.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "description": "URL path matched by the Ingress rule.",
+                      "type": "string"
+                    },
+                    "pathType": {
+                      "description": "Kubernetes Ingress path matching mode.",
+                      "type": "string",
+                      "enum": ["Exact", "Prefix", "ImplementationSpecific"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": [
+            {
+              "host": "mcp.example.com",
+              "paths": [{ "path": "/mcp", "pathType": "Prefix" }]
+            }
+          ]
+        },
+        "tls": {
+          "description": "Ingress TLS configuration.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretName": {
+                "description": "Secret containing the TLS certificate.",
+                "type": "string"
+              },
+              "hosts": {
+                "description": "Hosts covered by the TLS certificate.",
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "default": []
+        }
+      }
+    },
+    "resources": {
+      "description": "Container resource requests and limits.",
+      "type": "object",
+      "default": {
+        "requests": { "cpu": "10m", "memory": "32Mi" },
+        "limits": { "cpu": "250m", "memory": "128Mi" }
+      }
+    },
+    "podSecurityContext": {
+      "description": "Pod-level security context.",
+      "type": "object",
+      "default": {
+        "runAsNonRoot": true,
+        "runAsUser": 65532,
+        "runAsGroup": 65532,
+        "fsGroup": 65532
+      }
+    },
+    "securityContext": {
+      "description": "Container-level security context.",
+      "type": "object",
+      "default": {
+        "allowPrivilegeEscalation": false,
+        "readOnlyRootFilesystem": true,
+        "capabilities": { "drop": ["ALL"] }
+      }
+    },
+    "nodeSelector": {
+      "description": "Node labels used for pod assignment.",
+      "type": "object",
+      "default": {}
+    },
+    "tolerations": {
+      "description": "Pod tolerations.",
+      "type": "array",
+      "items": { "type": "object" },
+      "default": []
+    },
+    "affinity": {
+      "description": "Pod affinity rules.",
+      "type": "object",
+      "default": {}
+    }
+  }
+}

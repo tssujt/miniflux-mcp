@@ -1,5 +1,6 @@
 GO ?= go
 DOCKER_COMPOSE ?= docker compose
+HELM_DOCS_IMAGE ?= ghcr.io/elisiariocouto/jsonschema-markdown:2026.5.0
 E2E_PROJECT ?= miniflux-mcp-e2e
 E2E_COMPOSE_FILE := .github/e2e/compose.yml
 E2E_DOCKER_ARCH = $(shell docker version --format '{{.Server.Arch}}')
@@ -11,7 +12,7 @@ REVISION ?= $(shell git rev-parse --short HEAD)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 LDFLAGS = -X main.Version=$(VERSION) -X main.Revision=$(REVISION) -X main.BuildDate=$(BUILD_DATE)
 
-.PHONY: build test lint e2e
+.PHONY: build test lint e2e helm-docs
 
 build:
 	$(GO) build -ldflags "$(LDFLAGS)" ./...
@@ -21,6 +22,11 @@ test:
 
 lint:
 	golangci-lint run
+
+helm-docs:
+	docker run --rm -i $(HELM_DOCS_IMAGE) --no-footer --no-empty-columns - \
+		< charts/miniflux-mcp/values.schema.json \
+		> charts/miniflux-mcp/README.md
 
 e2e:
 	@set -eu; \

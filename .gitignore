@@ -18,7 +18,7 @@
 go.work
 
 # Build artifacts
-miniflux-mcp
+/miniflux-mcp
 miniflux-mcp-*
 dist/
 build/

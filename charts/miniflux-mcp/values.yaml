@@ -1,0 +1,69 @@
+replicaCount: 1
+
+image:
+  repository: jwonder/miniflux-mcp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+miniflux:
+  url: http://miniflux:8080
+  apiKey: ""
+  username: ""
+  password: ""
+
+mcp:
+  port: 8080
+  path: /mcp
+  authToken: ""
+
+existingSecret: ""
+
+secretKeys:
+  mcpAuthToken: MCP_AUTH_TOKEN
+  minifluxApiKey: MINIFLUX_API_KEY
+  minifluxUsername: MINIFLUX_USERNAME
+  minifluxPassword: MINIFLUX_PASSWORD
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: mcp.example.com
+      paths:
+        - path: /mcp
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

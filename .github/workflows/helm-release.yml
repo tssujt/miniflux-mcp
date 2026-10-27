@@ -1,0 +1,95 @@
+name: Release Helm chart
+
+on:
+  push:
+    tags:
+      - "helm-v*"
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: helm-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CHART_PATH: charts/miniflux-mcp
+  OCI_REGISTRY: ghcr.io
+  OCI_NAMESPACE: charts
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Validate release version
+        id: release
+        shell: bash
+        run: |
+          chart_metadata="$(helm show chart "$CHART_PATH")"
+          chart_name="$(awk '$1 == "name:" { print $2 }' <<< "$chart_metadata")"
+          chart_version="$(awk '$1 == "version:" { print $2 }' <<< "$chart_metadata")"
+          tag_version="${GITHUB_REF_NAME#helm-v}"
+
+          if [[ -z "$chart_name" || -z "$chart_version" ]]; then
+            echo "Chart name or version is missing from $CHART_PATH/Chart.yaml" >&2
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF_NAME" != "helm-v$chart_version" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match chart version $chart_version; expected helm-v$chart_version" >&2
+            exit 1
+          fi
+
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "chart_name=$chart_name" >> "$GITHUB_OUTPUT"
+          echo "version=$tag_version" >> "$GITHUB_OUTPUT"
+          echo "oci_destination=oci://$OCI_REGISTRY/$owner/$OCI_NAMESPACE" >> "$GITHUB_OUTPUT"
+          echo "oci_reference=oci://$OCI_REGISTRY/$owner/$OCI_NAMESPACE/$chart_name" >> "$GITHUB_OUTPUT"
+
+      - name: Lint and package chart
+        shell: bash
+        run: |
+          helm lint "$CHART_PATH"
+          mkdir -p dist
+          helm package "$CHART_PATH" --destination dist
+          cd dist
+          sha256sum ./*.tgz > checksums.txt
+
+      - name: Log in to GitHub Container Registry
+        shell: bash
+        run: |
+          echo "$GITHUB_TOKEN" | helm registry login "$OCI_REGISTRY" \
+            --username "$GITHUB_ACTOR" \
+            --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish chart to OCI registry
+        run: helm push "dist/${{ steps.release.outputs.chart_name }}-${{ steps.release.outputs.version }}.tgz" "${{ steps.release.outputs.oci_destination }}"
+
+      - name: Create GitHub Release
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/${{ steps.release.outputs.chart_name }}-${{ steps.release.outputs.version }}.tgz" \
+            "dist/checksums.txt" \
+            --verify-tag \
+            --generate-notes \
+            --title "Helm chart ${{ steps.release.outputs.version }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "### Helm chart ${{ steps.release.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```console' >> "$GITHUB_STEP_SUMMARY"
+          echo "helm install miniflux-mcp ${{ steps.release.outputs.oci_reference }} --version ${{ steps.release.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

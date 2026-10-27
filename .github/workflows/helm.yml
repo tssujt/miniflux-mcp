@@ -1,0 +1,76 @@
+name: Helm chart
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "charts/**"
+      - "Makefile"
+      - ".github/workflows/helm*.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "charts/**"
+      - "Makefile"
+      - ".github/workflows/helm*.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Check YAML and JSON formatting
+        run: >-
+          npx --yes prettier@3.5.3 --check
+          charts/miniflux-mcp/Chart.yaml
+          charts/miniflux-mcp/values.yaml
+          charts/miniflux-mcp/values.schema.json
+          .github/workflows/helm.yml
+          .github/workflows/helm-release.yml
+
+      - name: Lint chart
+        run: helm lint charts/miniflux-mcp
+
+      - name: Render default configuration
+        run: helm template default-test charts/miniflux-mcp > /tmp/miniflux-mcp-default.yaml
+
+      - name: Render custom ingress with an external Secret
+        run: >-
+          helm template custom-test charts/miniflux-mcp
+          --set existingSecret=external-mcp
+          --set ingress.className=private
+          > /tmp/miniflux-mcp-custom.yaml
+
+      - name: Render generated Secret configurations
+        run: |
+          helm template api-key-test charts/miniflux-mcp \
+            --set mcp.authToken=test-token \
+            --set miniflux.apiKey=test-api-key \
+            > /tmp/miniflux-mcp-api-key.yaml
+          helm template basic-auth-test charts/miniflux-mcp \
+            --set mcp.authToken=test-token \
+            --set miniflux.username=test-user \
+            --set miniflux.password=test-password \
+            > /tmp/miniflux-mcp-basic-auth.yaml
+
+      - name: Check generated chart documentation
+        run: |
+          make helm-docs
+          git diff --exit-code -- charts/miniflux-mcp/README.md
+
+      - name: Validate rendered Kubernetes manifests
+        run: |
+          for manifest in /tmp/miniflux-mcp-*.yaml; do
+            docker run --rm -i ghcr.io/yannh/kubeconform:v0.6.7 \
+              -strict -summary - < "$manifest"
+          done
