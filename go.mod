@@ -3,7 +3,7 @@ module miniflux-mcp
 go 1.27.3
 
 require (
-	github.com/mark3labs/mcp-go v1.4.0
+	github.com/mark3labs/mcp-go v1.5.0
 	miniflux.app/v2 v2.3.4
 )
 
