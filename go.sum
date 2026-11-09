@@ -30,5 +30,5 @@ golang.org/x/text v0.43.0 h1:1QivrlhwAsnMOcqgOdl9my7s9OyZl8O5/UGUTJVXoWc=
 golang.org/x/text v0.43.0/go.mod h1:hbSIYA/amXcRXTFSZqh8tWHEoqRvvbKPJ2uz/KU+a+s=
 golang.org/x/tools v0.51.0 h1:k4Xc/1Om9jwkBJBo4NVLMSARBoWtK10mx+W5BnXCeAI=
 golang.org/x/tools v0.51.0/go.mod h1:9eEncMayCV6zRMGhR5eZEC2iBx98qWcF1HZ9Z7wJOoA=
-miniflux.app/v2 v2.3.4 h1:Be+4FqGk+vfwQ6ueH4YcxKX8D9lb1xV7yJ9PgIs529Q=
-miniflux.app/v2 v2.3.4/go.mod h1:lPeBS5fmCsXZbjC1HwcnNUH1hgo/j+DueBlR3IsPTww=
+miniflux.app/v2 v2.3.5 h1:Ani/5wcX3WMSGiAD6oLHzV0Ns8CoAXfTCMIZz3D7PrU=
+miniflux.app/v2 v2.3.5/go.mod h1:tXj1Z+pEgKwqrmrZOt/dydDxH+9e43qPHrCr+KF2BiI=
